@@ -5,8 +5,23 @@ namespace Laravel\Passport;
 use Illuminate\Support\Str;
 use RuntimeException;
 
+use Laravel\Passport\Events\ClientCreated;
+use Illuminate\Contracts\Events\Dispatcher;
+
 class ClientRepository
 {
+    /**
+     * The event dispatcher instance.
+     *
+     * @var \Illuminate\Contracts\Events\Dispatcher
+     */
+    protected $events;
+
+    public function __construct( Dispatcher $events)
+    {
+        $this->events = $events;
+    }
+
     /**
      * Get a client by the given ID.
      *
@@ -122,6 +137,11 @@ class ClientRepository
         ]);
 
         $client->save();
+
+        $this->events->dispatch(new ClientCreated(
+            $client->id,
+            $userId
+        ));
 
         return $client;
     }
